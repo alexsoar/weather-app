@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 const apiKey = '2858b7833ff2408eaa92ae2bec628ab0';
-const apiUrl = 'http://api.openweathermap.org/data/2.5/weather?units=metric';
+const apiUrl = 'https://api.openweathermap.org/data/2.5/weather?units=metric';
 
 function App() {
   const [city, setCity] = useState('');
