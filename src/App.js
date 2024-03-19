@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+// App.js
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 const apiKey = '2858b7833ff2408eaa92ae2bec628ab0';
-const apiUrl = 'http://api.openweathermap.org/data/2.5/weather?units=metric&q=';
+const apiUrl = 'http://api.openweathermap.org/data/2.5/weather?units=metric';
 
 function App() {
-  const [city, setCity] = useState('London');
+  const [city, setCity] = useState('');
   const [weather, setWeather] = useState({
     name: '',
     temp: '',
@@ -14,9 +15,40 @@ function App() {
     weatherMain: '',
   });
 
-  const checkWeather = async () => {
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `${apiUrl}&lat=${latitude}&lon=${longitude}&appid=${apiKey}`
+          );
+          const data = await response.json();
+          setCity(data.name);
+          setWeather({
+            name: data.name,
+            temp: Math.round(data.main.temp),
+            humidity: data.main.humidity,
+            windSpeed: data.wind.speed,
+            weatherMain: data.weather[0].main,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setCity('London'); // Default city if geolocation is not available or denied
+          fetchWeatherData('London');
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+      setCity('London'); // Default city if geolocation is not supported
+      fetchWeatherData('London');
+    }
+  }, []); // Empty dependency array to run this effect only once
+
+  const fetchWeatherData = async (cityName) => {
     try {
-      const response = await fetch(`${apiUrl}${city}&appid=${apiKey}`);
+      const response = await fetch(`${apiUrl}&q=${cityName}&appid=${apiKey}`);
       const data = await response.json();
       setWeather({
         name: data.name,
@@ -31,7 +63,7 @@ function App() {
   };
 
   const handleSearch = () => {
-    checkWeather();
+    fetchWeatherData(city);
   };
 
   const handleKeyPress = (event) => {
